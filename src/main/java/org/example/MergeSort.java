@@ -1,43 +1,58 @@
 package org.example;
 
-import java.util.Arrays;
-
 public class MergeSort {
+
+    private static final int INSERTION_SORT_THRESHOLD = 20;
+
     public static void sort(int[] arr, Metrics m) {
-        int[] buf = new int[arr.length];
-        m.allocate();
-        sort(arr, 0, arr.length - 1, buf, m);
-    }
+        int n = arr.length;
 
-    private static void sort(int[] arr, int l, int r, int[] buf, Metrics m) {
-        if (l >= r) return;
-        m.enter();
-        int mid = (l + r) / 2;
-        sort(arr, l, mid, buf, m);
-        sort(arr, mid + 1, r, buf, m);
-        merge(arr, l, mid, r, buf, m);
-        m.exit();
-    }
-
-    private static void merge(int[] arr, int l, int mid, int r, int[] buf, Metrics m) {
-        int i = l, j = mid + 1, k = l;
-        while (i <= mid && j <= r) {
-            m.compare();
-            if (arr[i] <= arr[j]) buf[k++] = arr[i++];
-            else buf[k++] = arr[j++];
+        if (n <= INSERTION_SORT_THRESHOLD) {
+            insertionSort(arr, 0, n - 1, m);
+            return;
         }
-        while (i <= mid) buf[k++] = arr[i++];
-        while (j <= r) buf[k++] = arr[j++];
-        for (int x = l; x <= r; x++) arr[x] = buf[x];
+
+        int[] aux = new int[n];
+        for (int size = 1; size < n; size *= 2) {
+            for (int left = 0; left < n - size; left += 2 * size) {
+                int mid = left + size - 1;
+                int right = Math.min(left + 2 * size - 1, n - 1);
+                merge(arr, aux, left, mid, right, m);
+            }
+        }
+    }
+
+    private static void merge(int[] arr, int[] aux, int left, int mid, int right, Metrics m) {
+        System.arraycopy(arr, left, aux, left, right - left + 1);
+        int i = left, j = mid + 1, k = left;
+        while (i <= mid && j <= right) {
+            m.incrementComparisons();
+            if (aux[i] <= aux[j]) arr[k++] = aux[i++];
+            else arr[k++] = aux[j++];
+        }
+        while (i <= mid) arr[k++] = aux[i++];
+        while (j <= right) arr[k++] = aux[j++];
+        m.incrementAllocations();
+    }
+
+    private static void insertionSort(int[] arr, int low, int high, Metrics m) {
+        for (int i = low + 1; i <= high; i++) {
+            int key = arr[i];
+            int j = i - 1;
+            while (j >= low && arr[j] > key) {
+                m.incrementComparisons();
+                arr[j + 1] = arr[j];
+                j--;
+            }
+            arr[j + 1] = key;
+        }
     }
 
     public static void main(String[] args) {
-        int[] arr = {5, 3, 8, 1, 2};
+        int[] arr = {5, 2, 9, 1, 5, 6};
         Metrics m = new Metrics();
-        MergeSort.sort(arr, m);
-        System.out.println("MergeSort result: " + Arrays.toString(arr));
-        System.out.println("Comparisons=" + m.comparisons.get() +
-                ", Allocations=" + m.allocations.get() +
-                ", MaxDepth=" + m.getMaxDepth());
+        sort(arr, m);
+        for (int x : arr) System.out.print(x + " ");
+        System.out.println("\n" + m);
     }
 }

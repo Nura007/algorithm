@@ -1,59 +1,80 @@
 package org.example;
 
-import java.util.Arrays;
 import java.util.Random;
 
 public class QuickSort {
-    private static final Random R = new Random();
+
+    private static final int INSERTION_SORT_THRESHOLD = 20;
+    private static final Random rand = new Random();
 
     public static void sort(int[] arr, Metrics m) {
-        quicksort(arr, 0, arr.length - 1, m);
+        quickSort(arr, 0, arr.length - 1, m, 1);
     }
 
-    private static void quicksort(int[] arr, int l, int r, Metrics m) {
-        while (l < r) {
-            m.enter();
-            int p = partition(arr, l, r, m);
-            if (p - l < r - p) {
-                quicksort(arr, l, p - 1, m);
-                l = p + 1;
-            } else {
-                quicksort(arr, p + 1, r, m);
-                r = p - 1;
+    private static void quickSort(int[] arr, int low, int high, Metrics m, int depth) {
+        if (low < high) {
+
+            if (high - low + 1 <= INSERTION_SORT_THRESHOLD) {
+                insertionSort(arr, low, high, m);
+                return;
             }
-            m.exit();
+
+            int pivotIndex = medianOfThree(arr, low, high, m);
+            int pivot = arr[pivotIndex];
+
+            // Partition
+            int i = low, j = high;
+            while (i <= j) {
+                while (arr[i] < pivot) { m.incrementComparisons(); i++; }
+                while (arr[j] > pivot) { m.incrementComparisons(); j--; }
+                if (i <= j) {
+                    swap(arr, i, j, m);
+                    i++; j--;
+                }
+            }
+
+            m.updateMaxDepth(depth);
+            if (low < j) quickSort(arr, low, j, m, depth + 1);
+            if (i < high) quickSort(arr, i, high, m, depth + 1);
         }
     }
 
-    private static int partition(int[] arr, int l, int r, Metrics m) {
-        int pivotIndex = l + R.nextInt(r - l + 1);
-        int pivot = arr[pivotIndex];
-        swap(arr, pivotIndex, r);
-        int i = l - 1;
-        for (int j = l; j < r; j++) {
-            m.compare();
-            if (arr[j] <= pivot) {
-                i++;
-                swap(arr, i, j);
+    private static void insertionSort(int[] arr, int low, int high, Metrics m) {
+        for (int i = low + 1; i <= high; i++) {
+            int key = arr[i];
+            int j = i - 1;
+            while (j >= low && arr[j] > key) {
+                m.incrementComparisons();
+                arr[j + 1] = arr[j];
+                j--;
             }
+            arr[j + 1] = key;
         }
-        swap(arr, i + 1, r);
-        return i + 1;
     }
 
-    private static void swap(int[] arr, int i, int j) {
+    // Median-of-three pivot selection
+    private static int medianOfThree(int[] arr, int low, int high, Metrics m) {
+        int mid = low + (high - low) / 2;
+        if (arr[low] > arr[mid]) swap(arr, low, mid, m);
+        if (arr[low] > arr[high]) swap(arr, low, high, m);
+        if (arr[mid] > arr[high]) swap(arr, mid, high, m);
+        return mid;
+    }
+
+    private static void swap(int[] arr, int i, int j, Metrics m) {
         int tmp = arr[i];
         arr[i] = arr[j];
         arr[j] = tmp;
+        m.incrementAllocations();
     }
 
     public static void main(String[] args) {
-        int[] arr = {10, -3, 7, 7, 0};
+        int[] arr = {5, 2, 9, 1, 5, 6};
         Metrics m = new Metrics();
-        QuickSort.sort(arr, m);
-        System.out.println("QuickSort result: " + Arrays.toString(arr));
-        System.out.println("Comparisons=" + m.comparisons.get() +
-                ", Allocations=" + m.allocations.get() +
-                ", MaxDepth=" + m.getMaxDepth());
+        sort(arr, m);
+
+        System.out.println("Sorted:");
+        for (int n : arr) System.out.print(n + " ");
+        System.out.println("\n" + m);
     }
 }

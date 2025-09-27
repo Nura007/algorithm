@@ -1,31 +1,39 @@
 package org.example;
 
-import java.util.concurrent.atomic.AtomicInteger;
-
 public class Metrics {
-    public AtomicInteger comparisons = new AtomicInteger();
-    public AtomicInteger allocations = new AtomicInteger();
-    private int depth = 0;
+    private long comparisons = 0;
+    private long allocations = 0;
     private int maxDepth = 0;
 
-    public void compare() {
-        comparisons.incrementAndGet();
+    public void incrementComparisons() {
+        comparisons++;
     }
 
-    public void allocate() {
-        allocations.incrementAndGet();
+    public void incrementAllocations() {
+        allocations++;
     }
 
-    public void enter() {
-        depth++;
-        if (depth > maxDepth) maxDepth = depth;
+    public void updateMaxDepth(int depth) {
+        maxDepth = Math.max(maxDepth, depth);
     }
 
-    public void exit() {
-        depth--;
+    // Геттеры для Benchmark
+    public long getComparisons() {
+        return comparisons;
+    }
+
+    public long getAllocations() {
+        return allocations;
     }
 
     public int getMaxDepth() {
         return maxDepth;
+    }
+
+    @Override
+    public String toString() {
+        return "Comparisons=" + comparisons +
+                ", Allocations=" + allocations +
+                ", MaxDepth=" + maxDepth;
     }
 }

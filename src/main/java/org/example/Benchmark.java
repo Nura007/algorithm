@@ -2,65 +2,87 @@ package org.example;
 
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.Random;
 
 public class Benchmark {
 
-    private static final Random rnd = new Random();
+    private static final int[] SIZES = {100, 500, 1000, 5000, 10000};
+    private static final int REPEAT = 5;
+
+    private static final Random rand = new Random();
 
     public static void main(String[] args) {
-        int[] sizes = {100, 500, 1000, 5000, 10000};
-
         try (FileWriter out = new FileWriter("benchmark_results.csv")) {
             out.write("Algorithm,Size,Time(ms),Comparisons,Allocations,MaxDepth\n");
 
-            for (int n : sizes) {
-                int[] base = rnd.ints(n, -1_000_000, 1_000_000).toArray();
+            for (int size : SIZES) {
+                int[] baseArray = randArray(size);
 
                 // MergeSort
-                runAndSave("MergeSort", base.clone(), out, (arr, m) -> MergeSort.sort(arr, m));
+                runBenchmark("MergeSort", baseArray, out, (arr, m) -> MergeSort.sort(arr, m));
 
                 // QuickSort
-                runAndSave("QuickSort", base.clone(), out, (arr, m) -> QuickSort.sort(arr, m));
+                runBenchmark("QuickSort", baseArray, out, (arr, m) -> QuickSort.sort(arr, m));
 
-                // Select
-                runAndSave("DeterministicSelect", base.clone(), out,
-                        (arr, m) -> DeterministicSelect.select(arr, n / 2, m));
+                // Deterministic Select (ищем k-й элемент, k = n/2)
+                runBenchmark("DeterministicSelect", baseArray, out,
+                        (arr, m) -> DeterministicSelect.select(arr, arr.length / 2, m));
 
-                // ClosestPair
-                ClosestPair.Point[] pts = new ClosestPair.Point[n];
-                for (int i = 0; i < n; i++) {
-                    pts[i] = new ClosestPair.Point(rnd.nextDouble() * 1000, rnd.nextDouble() * 1000);
-                }
-                long start = System.nanoTime();
-                Metrics m = new Metrics();
-                double d = ClosestPair.closest(pts, m);
-                long time = (System.nanoTime() - start) / 1_000_000;
-                out.write(String.format("ClosestPair,%d,%d,%d,%d,%d\n",
-                        n, time, m.comparisons.get(), m.allocations.get(), m.getMaxDepth()));
+                // Closest Pair
+                runBenchmark("ClosestPair", baseArray, out,
+                        (arr, m) -> {
+                            ClosestPair.Point[] pts = new ClosestPair.Point[arr.length];
+                            for (int i = 0; i < arr.length; i++) {
+                                pts[i] = new ClosestPair.Point(arr[i], rand.nextInt(10000));
+                            }
+                            ClosestPair.closestPair(pts, m);
+                        });
             }
+
+            System.out.println("✅ Benchmark finished. Results saved to benchmark_results.csv");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
-
-        System.out.println("Benchmark finished! Results saved in benchmark_results.csv");
     }
 
+    private static void runBenchmark(String name, int[] baseArray, FileWriter out,
+                                     AlgorithmRunner runner) throws IOException {
+        long totalTime = 0;
+        long totalComparisons = 0;
+        long totalAllocations = 0;
+        long totalDepth = 0;
 
-    private static void runAndSave(String name, int[] arr, FileWriter out,
-                                   AlgorithmRunner runner) throws IOException {
-        Metrics m = new Metrics();
-        long start = System.nanoTime();
-        runner.run(arr, m);
-        long time = (System.nanoTime() - start) / 1_000_000;
+        for (int r = 0; r < REPEAT; r++) {
+            int[] copy = baseArray.clone();
+            Metrics m = new Metrics();
+            long start = System.nanoTime();
+            runner.run(copy, m);
+            long end = System.nanoTime();
 
-        out.write(String.format("%s,%d,%d,%d,%d,%d\n",
-                name, arr.length, time, m.comparisons.get(), m.allocations.get(), m.getMaxDepth()));
+            totalTime += (end - start) / 1_000_000; // в миллисекундах
+            totalComparisons += m.getComparisons();
+            totalAllocations += m.getAllocations();
+            totalDepth += m.getMaxDepth();
+        }
+
+        long avgTime = totalTime / REPEAT;
+        long avgComparisons = totalComparisons / REPEAT;
+        long avgAllocations = totalAllocations / REPEAT;
+        long avgDepth = totalDepth / REPEAT;
+
+        out.write(name + "," + baseArray.length + "," + avgTime + "," +
+                avgComparisons + "," + avgAllocations + "," + avgDepth + "\n");
+    }
+
+    private static int[] randArray(int n) {
+        int[] arr = new int[n];
+        for (int i = 0; i < n; i++) arr[i] = rand.nextInt(1000000);
+        return arr;
     }
 
     @FunctionalInterface
-    private interface AlgorithmRunner {
+    interface AlgorithmRunner {
         void run(int[] arr, Metrics m);
     }
 }
