@@ -94,7 +94,30 @@ It includes:
 
 ---
 
-# 5. How to Run
+
+---
+
+## 5. Benchmark Graphs
+
+### Time vs Input Size
+![Time vs Size](images/time_vs_size.png)
+
+### Comparisons vs Input Size
+![Comparisons vs Size](images/comparisons_vs_size.png)
+
+### Max Recursion Depth vs Input Size
+![Max Depth vs Size](images/depth_vs_size.png)
+
+### All Metrics Combined
+![All Metrics](images/all_metrics.png)
+
+---
+
+## 6. How to Run
+
+### Build & Compile
+```bash
+mvn clean compile
 
 ## Build
 ```bash
