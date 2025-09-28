@@ -17,7 +17,7 @@ public class Metrics {
         maxDepth = Math.max(maxDepth, depth);
     }
 
-    // Геттеры для Benchmark
+    //Геттеры для Benchmark
     public long getComparisons() {
         return comparisons;
     }

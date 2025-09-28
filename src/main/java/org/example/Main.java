@@ -12,8 +12,8 @@ public class Main {
         Metrics m1 = new Metrics();
         MergeSort.sort(arr1, m1);
         System.out.println("MergeSort result: " + Arrays.toString(arr1));
-        System.out.println("  Comparisons=" + m1.comparisons.get() +
-                ", Allocations=" + m1.allocations.get() +
+        System.out.println("  Comparisons=" + m1.getComparisons() +
+                ", Allocations=" + m1.getAllocations() +
                 ", MaxDepth=" + m1.getMaxDepth());
         System.out.println();
 
@@ -22,8 +22,8 @@ public class Main {
         Metrics m2 = new Metrics();
         QuickSort.sort(arr2, m2);
         System.out.println("QuickSort result: " + Arrays.toString(arr2));
-        System.out.println("  Comparisons=" + m2.comparisons.get() +
-                ", Allocations=" + m2.allocations.get() +
+        System.out.println("  Comparisons=" + m2.getComparisons() +
+                ", Allocations=" + m2.getAllocations() +
                 ", MaxDepth=" + m2.getMaxDepth());
         System.out.println();
 
@@ -33,8 +33,8 @@ public class Main {
         Metrics m3 = new Metrics();
         int sel = DeterministicSelect.select(arr3, k, m3);
         System.out.println("DeterministicSelect k=" + k + " → " + sel);
-        System.out.println("  Comparisons=" + m3.comparisons.get() +
-                ", Allocations=" + m3.allocations.get() +
+        System.out.println("  Comparisons=" + m3.getComparisons() +
+                ", Allocations=" + m3.getAllocations() +
                 ", MaxDepth=" + m3.getMaxDepth());
         System.out.println();
 
@@ -46,8 +46,10 @@ public class Main {
                 new ClosestPair.Point(1, 1)
         };
         Metrics m4 = new Metrics();
-        double d = ClosestPair.closest(pts, m4);
+        double d = ClosestPair.closestPair(pts, m4);
         System.out.println("ClosestPair distance: " + d);
-        System.out.println("  Comparisons=" + m4.comparisons.get());
+        System.out.println("  Comparisons=" + m4.getComparisons() +
+                ", Allocations=" + m4.getAllocations() +
+                ", MaxDepth=" + m4.getMaxDepth());
     }
 }
