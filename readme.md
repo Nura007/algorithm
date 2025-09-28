@@ -99,16 +99,16 @@ It includes:
 
 ## 5. Benchmark Graphs
 
-### Time vs Input Size
+### Merge Sort Graph 
 ![Time vs Size](images/time_vs_size.png)
 
-### Comparisons vs Input Size
-![Comparisons vs Size](images/comparisons_vs_size.png)
+### Quick Sort Graph
+![Comparisons vs Size](images/![quicksort_metrics.png](../../Downloads/quicksort_metrics.png))
 
-### Max Recursion Depth vs Input Size
+### Deterministic Select Graph
 ![Max Depth vs Size](images/depth_vs_size.png)
 
-### All Metrics Combined
+### Closest Pair Graph
 ![All Metrics](images/all_metrics.png)
 
 
